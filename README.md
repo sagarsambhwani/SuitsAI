@@ -148,6 +148,7 @@ terraform apply -var-file="environments/prod.tfvars"
 
 ### Core Guides
 * [System Architecture Guide](docs/architecture.md): Two-plane architecture, LangGraph reasoning, and 8-Gate verification.
+* [AWS Bedrock & Alternatives Deep-Dive (v3)](docs/aws_bedrock_and_alternatives_defense.md): Full-stack Bedrock subsystem, TCO comparison against Azure OpenAI, Vertex AI, Self-Hosted vLLM, and Direct SaaS.
 * [LangGraph Orchestration & Multi-Agent Defense (v2)](docs/langgraph_architecture_and_defense.md): Technical defense and architectural deep-dive into LangGraph state machine design.
 * [Engineering Interview & Systems Defense Guide](docs/interview_guide.md): Comprehensive interview guide from AI, Backend, and DevOps perspectives.
 * [Ingestion Pipeline & Document Processing](docs/ingestion_pipeline.md): Layout-aware multi-format parsing (PDF, Scans, Word, Excel, PPTX) and hierarchical semantic chunking.
