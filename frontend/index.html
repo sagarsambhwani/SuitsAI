@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SuitsAI — Enterprise AI Compliance & Bank Policy Platform</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-logo">SA</div>
+        <div class="brand-text">
+          <span class="brand-name">SuitsAI</span>
+          <span class="brand-badge">Defensible Compliance</span>
+        </div>
+      </div>
+
+      <div class="tenant-selector-box">
+        <label for="tenantSelect" class="tenant-label">ACTIVE TENANT</label>
+        <select id="tenantSelect" class="tenant-select">
+          <option value="BANK-GLOBAL-001">Apex Commercial Bank (IN)</option>
+          <option value="BANK-US-002">Sterling Federal Credit (US)</option>
+          <option value="BANK-SG-003">Marina Pacific Bank (SG)</option>
+        </select>
+      </div>
+
+      <nav class="nav-menu">
+        <button class="nav-item active" data-tab="dashboard">
+          <span class="nav-icon">📊</span>
+          <span>Compliance Center</span>
+        </button>
+        <button class="nav-item" data-tab="regulations">
+          <span class="nav-icon">📜</span>
+          <span>Regulatory Evidence (L1)</span>
+        </button>
+        <button class="nav-item" data-tab="policies">
+          <span class="nav-icon">🏛️</span>
+          <span>Bank Policies (L3)</span>
+        </button>
+        <button class="nav-item" data-tab="graph">
+          <span class="nav-icon">🕸️</span>
+          <span>Knowledge Graph</span>
+        </button>
+        <button class="nav-item" data-tab="impact">
+          <span class="nav-icon">⚡</span>
+          <span>AI Impact & 8-Gate Engine</span>
+        </button>
+        <button class="nav-item" data-tab="replay">
+          <span class="nav-icon">📼</span>
+          <span>Auditor Replay Facility</span>
+        </button>
+        <button class="nav-item" data-tab="approvals">
+          <span class="nav-icon">🛡️</span>
+          <span>Review & Approval</span>
+        </button>
+        <button class="nav-item" data-tab="audit">
+          <span class="nav-icon">🔒</span>
+          <span>Immutable Audit Log</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-pill">
+          <div class="avatar">CO</div>
+          <div class="user-info">
+            <span class="user-name">Chief Compliance Officer</span>
+            <span class="user-role">Role: Approver & Auditor</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <!-- Top Header Bar -->
+      <header class="top-header">
+        <div class="header-titles">
+          <h1 id="pageTitle">Compliance Center</h1>
+          <p id="pageSubtitle">Defensible, evidence-backed regulatory change management with independent verification</p>
+        </div>
+        <div class="header-actions">
+          <span class="status-indicator online">
+            <span class="pulse-dot"></span>
+            8-Gate Verification Engine Active
+          </span>
+          <button id="btnSeedDemo" class="btn btn-secondary">⚡ Load Demo Scenario</button>
+        </div>
+      </header>
+
+      <!-- TAB 1: Dashboard Overview -->
+      <section id="tab-dashboard" class="tab-pane active">
+        <div class="metric-grid">
+          <div class="metric-card">
+            <div class="metric-header">
+              <span class="metric-title">Immutable Evidence Documents</span>
+              <span class="metric-tag">Layer 1</span>
+            </div>
+            <div class="metric-value" id="statRegCount">3</div>
+            <div class="metric-footer">Extracted Obligations: <strong id="statReqCount">8</strong></div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-header">
+              <span class="metric-title">Internal Bank Policies</span>
+              <span class="metric-tag">Layer 3</span>
+            </div>
+            <div class="metric-value" id="statPolicyCount">4</div>
+            <div class="metric-footer">Active Controls: <strong id="statControlCount">12</strong></div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-header">
+              <span class="metric-title">Verification Gates</span>
+              <span class="metric-tag">8-Gate Scorecard</span>
+            </div>
+            <div class="metric-value text-success" id="statScorecard">8/8 Passed</div>
+            <div class="metric-footer">Citation & Exception Coverage: <strong>100%</strong></div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-header">
+              <span class="metric-title">Auditable Snapshots</span>
+              <span class="metric-tag">Total Replay</span>
+            </div>
+            <div class="metric-value text-cyan" id="statSnapshots">100% Traceable</div>
+            <div class="metric-footer">Sealed Audit Events: <strong id="statAuditCount">14</strong></div>
+          </div>
+        </div>
+
+        <div class="content-split">
+          <div class="card">
+            <div class="card-header">
+              <h3>Ingest Regulatory Circular (Layer 1 Evidence)</h3>
+              <span class="badge">S3 Lake + SHA-256</span>
+            </div>
+            <div class="card-body">
+              <form id="ingestForm">
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Circular Code</label>
+                    <input type="text" id="inCode" class="form-control" value="RBI/2026-27/04" required>
+                  </div>
+                  <div class="form-group">
+                    <label>Regulator</label>
+                    <input type="text" id="inRegulator" class="form-control" value="Reserve Bank of India" required>
+                  </div>
+                  <div class="form-group">
+                    <label>Jurisdiction</label>
+                    <select id="inJurisdiction" class="form-control">
+                      <option value="IN">India (IN)</option>
+                      <option value="US">United States (US)</option>
+                      <option value="SG">Singapore (SG)</option>
+                      <option value="GLOBAL">Global Standards (BCBS)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label>Document Title</label>
+                  <input type="text" id="inTitle" class="form-control" value="Master Direction on Digital Lending API Security and Key Management" required>
+                </div>
+
+                <div class="form-group">
+                  <label>Full Regulatory Text / Circular Content (with Page Markers)</label>
+                  <textarea id="inRawText" class="form-control" rows="6" required>[Page 1]
+Section 4.1 Cryptographic Key Lifecycle and Authentication
+1. Regulated entities shall ensure cryptographic keys and API tokens are rotated at intervals not exceeding 90 days.
+2. In the event of detected key exposure or inactivity exceeding 30 days, automated revocation and audit logging shall trigger immediately.
+3. Regulated entities must maintain immutable audit trails of all customer authorization grants and API access tokens for a minimum period of 10 years, except when customer is central government entity.</textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary" id="btnIngest">🚀 Ingest & Extract Obligations</button>
+              </form>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <h3>8-Gate Verification Engine Pipeline</h3>
+              <span class="badge badge-accent">Deterministic + LLM Separation</span>
+            </div>
+            <div class="card-body">
+              <div class="pipeline-tracker">
+                <div class="pipeline-step completed">
+                  <div class="step-num">1</div>
+                  <div class="step-desc">
+                    <strong>Evidence Cryptographic Gate</strong>
+                    <span>SHA-256 and S3 immutable storage</span>
+                  </div>
+                </div>
+                <div class="pipeline-step completed">
+                  <div class="step-num">2</div>
+                  <div class="step-desc">
+                    <strong>Jurisdiction & Temporal Gate</strong>
+                    <span>Cross-border boundary & effective dates</span>
+                  </div>
+                </div>
+                <div class="pipeline-step completed">
+                  <div class="step-num">3</div>
+                  <div class="step-desc">
+                    <strong>Requirement & Exception Gate</strong>
+                    <span>100% coverage & statutory exceptions</span>
+                  </div>
+                </div>
+                <div class="pipeline-step completed">
+                  <div class="step-num">4</div>
+                  <div class="step-desc">
+                    <strong>Sentence-Level Citation Gate</strong>
+                    <span>Verbatim evidence mapping</span>
+                  </div>
+                </div>
+                <div class="pipeline-step completed">
+                  <div class="step-num">5</div>
+                  <div class="step-desc">
+                    <strong>Contradiction & Inversion Gate</strong>
+                    <span>Strict obligation verb consistency</span>
+                  </div>
+                </div>
+                <div class="pipeline-step active">
+                  <div class="step-num">6</div>
+                  <div class="step-desc">
+                    <strong>Human Review Gateway & Replay</strong>
+                    <span>Officer decision + complete run freeze</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 2: Regulatory Catalog -->
+      <section id="tab-regulations" class="tab-pane">
+        <div class="card">
+          <div class="card-header">
+            <h3>Layer 1: Immutable Evidence Documents & Layer 2: Requirements</h3>
+          </div>
+          <div class="card-body" id="regulationsList">
+            <!-- Dynamic list -->
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 3: Bank Policies -->
+      <section id="tab-policies" class="tab-pane">
+        <div class="card">
+          <div class="card-header">
+            <h3>Layer 3: Bank Internal Policies & Active Controls</h3>
+            <button class="btn btn-secondary btn-sm" id="btnNewPolicyModal">+ Create New Policy</button>
+          </div>
+          <div class="card-body" id="policiesList">
+            <!-- Dynamic policies -->
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 4: Knowledge Graph -->
+      <section id="tab-graph" class="tab-pane">
+        <div class="card">
+          <div class="card-header">
+            <h3>Neo4j Regulatory Knowledge Graph with Edge Provenance</h3>
+            <span class="badge">Multi-Tenant Scoped: <span id="graphTenantLabel">BANK-GLOBAL-001</span></span>
+          </div>
+          <div class="card-body">
+            <div class="graph-legend">
+              <span class="legend-item"><span class="node-dot reg-dot"></span> Regulation</span>
+              <span class="legend-item"><span class="node-dot req-dot"></span> Requirement</span>
+              <span class="legend-item"><span class="node-dot pol-dot"></span> Bank Policy</span>
+              <span class="legend-item"><span class="node-dot ctl-dot"></span> Control</span>
+              <span class="legend-item"><span class="node-dot bu-dot"></span> Business Unit</span>
+            </div>
+            <div id="graphCanvas" class="graph-container">
+              <!-- Visualized Topology -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 5: AI Impact Analysis & 8-Gate Engine -->
+      <section id="tab-impact" class="tab-pane">
+        <div class="card">
+          <div class="card-header">
+            <h3>Execute Defensible Impact & Gap Analysis</h3>
+            <div style="display:flex; gap:10px; align-items:center;">
+              <label style="font-size:0.8rem; color:var(--text-secondary);">Execution Mode:</label>
+              <select id="selectExecMode" class="form-control" style="width:140px; padding:4px 8px;">
+                <option value="standard">Standard</option>
+                <option value="shadow">Shadow Mode</option>
+              </select>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="form-row">
+              <div class="form-group flex-2">
+                <label>Select Ingested Regulatory Circular</label>
+                <select id="selectRegulationForImpact" class="form-control"></select>
+              </div>
+              <div class="form-group flex-1 d-flex-end">
+                <button id="btnRunImpactAnalysis" class="btn btn-primary w-100">⚡ Execute LangGraph & 8-Gate Engine</button>
+              </div>
+            </div>
+
+            <div id="impactResultsArea" class="mt-4">
+              <!-- Defensible Results loaded here -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 6: Auditor Replay Facility -->
+      <section id="tab-replay" class="tab-pane">
+        <div class="card">
+          <div class="card-header">
+            <h3>Auditor Replay Facility (6-Month Historical Reproducibility)</h3>
+            <span class="badge badge-accent">Frozen System State</span>
+          </div>
+          <div class="card-body">
+            <div class="form-row">
+              <div class="form-group flex-2">
+                <label>Enter Compliance Run ID (e.g. RUN-20260816-...)</label>
+                <input type="text" id="inReplayRunId" class="form-control" placeholder="Paste Run ID to reconstruct audit trail...">
+              </div>
+              <div class="form-group flex-1 d-flex-end">
+                <button id="btnFetchReplay" class="btn btn-primary w-100">📼 Reconstruct & Replay Run</button>
+              </div>
+            </div>
+
+            <div id="replayResultArea" class="mt-4">
+              <p class="text-muted">Enter a Run ID or run an analysis to view its frozen execution snapshot, prompts, models, and scorecard.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 7: Approvals -->
+      <section id="tab-approvals" class="tab-pane">
+        <div class="card">
+          <div class="card-header">
+            <h3>Human-in-the-Loop Review & Gate Verification</h3>
+            <span class="badge badge-warning">Governance Gate</span>
+          </div>
+          <div class="card-body" id="approvalsListArea">
+            <!-- Review items -->
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 8: Audit Log -->
+      <section id="tab-audit" class="tab-pane">
+        <div class="card">
+          <div class="card-header">
+            <h3>Immutable Compliance Lineage & Audit Trail</h3>
+            <button class="btn btn-secondary btn-sm" id="btnExportAudit">📥 Export Audit Report (JSON)</button>
+          </div>
+          <div class="card-body">
+            <table class="data-table" id="auditTable">
+              <thead>
+                <tr>
+                  <th>Timestamp</th>
+                  <th>Event Type</th>
+                  <th>Entity Type</th>
+                  <th>Action</th>
+                  <th>Details</th>
+                  <th>Actor</th>
+                </tr>
+              </thead>
+              <tbody id="auditTableBody">
+                <!-- Dynamic audit events -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
