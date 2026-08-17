@@ -319,6 +319,17 @@ class PolicyChange(Base):
     status = Column(String(50), default="PENDING_REVIEW")  # PENDING_REVIEW, APPROVED, REJECTED, REVISE
     reviewed_by = Column(String(255), nullable=True)
     reviewed_at = Column(DateTime, nullable=True)
+
+    # Maker-Checker (4-Eyes Principle) Dual Control Governance
+    maker_id = Column(String(255), nullable=True)
+    maker_submitted_at = Column(DateTime, nullable=True)
+    maker_rationale = Column(Text, nullable=True)
+    checker_id = Column(String(255), nullable=True)
+    checker_reviewed_at = Column(DateTime, nullable=True)
+    checker_comments = Column(Text, nullable=True)
+    maker_checker_status = Column(String(50), default="DRAFT")  # DRAFT, MAKER_SUBMITTED, CHECKER_APPROVED, REJECTED, PUBLISHED
+    digital_signature_hash = Column(String(64), nullable=True)
+
     created_at = Column(DateTime, default=datetime.utcnow)
 
     assessment = relationship("ComplianceAssessment", back_populates="changes")

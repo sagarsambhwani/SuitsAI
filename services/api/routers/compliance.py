@@ -452,3 +452,16 @@ async def submit_reviewer_feedback(
     await db.commit()
 
     return {"status": "recorded", "feedback_id": record.id}
+
+
+from services.compliance.evaluation import GoldenComplianceEvaluator, BenchmarkEvaluationReport
+
+
+@router.post("/evaluate-benchmark", response_model=BenchmarkEvaluationReport)
+async def run_compliance_benchmark(
+    ctx: TenantContext = Depends(get_current_tenant_context),
+):
+    """Executes the automated golden ground-truth compliance evaluation benchmark."""
+    report = GoldenComplianceEvaluator.evaluate_benchmark()
+    return report
+

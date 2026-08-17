@@ -1,5 +1,6 @@
 from typing import AsyncGenerator
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
+from sqlalchemy import text
 from services.api.config import get_settings
 from database.postgres.models import Base
 
@@ -33,7 +34,44 @@ async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
             await session.close()
 
 
-async def init_db() -> None:
-    """Initialize database tables."""
+async def init_db(recreate: bool = False) -> None:
+    """Initialize database tables and ensure all columns exist."""
     async with engine.begin() as conn:
+        if recreate:
+            await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
+        
+        # Soft migration for SQLite dev databases
+        if "sqlite" in settings.DATABASE_URL:
+            try:
+                await conn.execute(text("ALTER TABLE policy_changes ADD COLUMN maker_id VARCHAR(255)"))
+            except Exception:
+                pass
+            try:
+                await conn.execute(text("ALTER TABLE policy_changes ADD COLUMN maker_submitted_at DATETIME"))
+            except Exception:
+                pass
+            try:
+                await conn.execute(text("ALTER TABLE policy_changes ADD COLUMN maker_rationale TEXT"))
+            except Exception:
+                pass
+            try:
+                await conn.execute(text("ALTER TABLE policy_changes ADD COLUMN checker_id VARCHAR(255)"))
+            except Exception:
+                pass
+            try:
+                await conn.execute(text("ALTER TABLE policy_changes ADD COLUMN checker_reviewed_at DATETIME"))
+            except Exception:
+                pass
+            try:
+                await conn.execute(text("ALTER TABLE policy_changes ADD COLUMN checker_comments TEXT"))
+            except Exception:
+                pass
+            try:
+                await conn.execute(text("ALTER TABLE policy_changes ADD COLUMN maker_checker_status VARCHAR(50) DEFAULT 'DRAFT'"))
+            except Exception:
+                pass
+            try:
+                await conn.execute(text("ALTER TABLE policy_changes ADD COLUMN digital_signature_hash VARCHAR(64)"))
+            except Exception:
+                pass
