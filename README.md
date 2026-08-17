@@ -148,6 +148,8 @@ terraform apply -var-file="environments/prod.tfvars"
 
 ### Core Guides
 * [System Architecture Guide](docs/architecture.md): Two-plane architecture, LangGraph reasoning, and 8-Gate verification.
+* [LangGraph Orchestration & Multi-Agent Defense (v2)](docs/langgraph_architecture_and_defense.md): Technical defense and architectural deep-dive into LangGraph state machine design.
+* [Engineering Interview & Systems Defense Guide](docs/interview_guide.md): Comprehensive interview guide from AI, Backend, and DevOps perspectives.
 * [Ingestion Pipeline & Document Processing](docs/ingestion_pipeline.md): Layout-aware multi-format parsing (PDF, Scans, Word, Excel, PPTX) and hierarchical semantic chunking.
 * [Embeddings & Hybrid Retrieval](docs/embeddings_and_retrieval.md): Cohere Embed v4 batching, Cohere Rerank 3.5, and hybrid vector/BM25 retrieval.
 * [API Reference & DTOs](docs/api_reference.md): Interactive REST endpoint contracts, schemas, and authentication headers.
