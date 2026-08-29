@@ -215,6 +215,8 @@ class Neo4jClient:
 
         return self._in_memory.find_impact_paths(regulation_id, tenant_id)
 
+    find_impact_paths = get_impact_paths
+
 
 _graph_client = None
 

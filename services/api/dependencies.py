@@ -62,6 +62,7 @@ async def get_current_tenant_context(
     x_tenant_id: Optional[str] = Header(None, alias="X-Tenant-ID"),
     x_user_id: Optional[str] = Header(None, alias="X-User-ID"),
     x_role: Optional[str] = Header(None, alias="X-Role"),
+    x_user_role: Optional[str] = Header(None, alias="X-User-Role"),
     authorization: Optional[str] = Header(None),
     db: AsyncSession = Depends(get_db_session),
 ) -> TenantContext:
@@ -71,7 +72,7 @@ async def get_current_tenant_context(
     """
     tenant_id = x_tenant_id or "BANK-GLOBAL-001"
     user_id = x_user_id or "USER-DEFAULT-001"
-    role = x_role or UserRole.COMPLIANCE_MAKER
+    role = x_role or x_user_role or UserRole.COMPLIANCE_MAKER
 
     # Normalize role
     if role not in [r.value for r in UserRole]:
@@ -99,22 +100,39 @@ async def get_current_tenant_context(
     )
 
 
-def require_roles(*allowed_roles: str) -> Callable:
+get_tenant_context = get_current_tenant_context
+
+
+def require_roles(*allowed_roles) -> Callable:
     """Dependency factory enforcing Role-Based Access Control (RBAC)."""
+    flat_roles = []
+    for r in allowed_roles:
+        if isinstance(r, (list, tuple, set)):
+            flat_roles.extend(r)
+        else:
+            flat_roles.append(r)
+
     async def role_checker(ctx: TenantContext = Depends(get_current_tenant_context)) -> TenantContext:
-        if ctx.role not in allowed_roles and ctx.role != UserRole.ADMIN:
+        if ctx.role not in flat_roles and ctx.role != UserRole.ADMIN:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Access denied: Role '{ctx.role}' does not have authorization. Required: {allowed_roles}",
+                detail=f"Access denied: Role '{ctx.role}' does not have authorization. Required: {flat_roles}",
             )
         return ctx
     return role_checker
 
 
-def require_permissions(*required_perms: str) -> Callable:
+def require_permissions(*required_perms) -> Callable:
     """Dependency factory enforcing Attribute/Permission-Based Access Control (ABAC)."""
+    flat_perms = []
+    for p in required_perms:
+        if isinstance(p, (list, tuple, set)):
+            flat_perms.extend(p)
+        else:
+            flat_perms.append(p)
+
     async def perm_checker(ctx: TenantContext = Depends(get_current_tenant_context)) -> TenantContext:
-        for perm in required_perms:
+        for perm in flat_perms:
             if not ctx.has_permission(perm):
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,

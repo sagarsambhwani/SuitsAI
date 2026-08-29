@@ -24,6 +24,7 @@ from database.postgres.models import (
 from ai.langgraph.state import ComplianceState
 from ai.langgraph.workflow import get_compliance_workflow
 from services.graph.client import get_graph_client
+from services.compliance.evaluation import GoldenComplianceEvaluator, BenchmarkEvaluationReport
 
 router = APIRouter(prefix="/compliance", tags=["Compliance Assessment & Defensibility Engine"])
 
@@ -454,9 +455,6 @@ async def submit_reviewer_feedback(
     return {"status": "recorded", "feedback_id": record.id}
 
 
-from services.compliance.evaluation import GoldenComplianceEvaluator, BenchmarkEvaluationReport
-
-
 @router.post("/evaluate-benchmark", response_model=BenchmarkEvaluationReport)
 async def run_compliance_benchmark(
     ctx: TenantContext = Depends(get_current_tenant_context),
@@ -464,4 +462,73 @@ async def run_compliance_benchmark(
     """Executes the automated golden ground-truth compliance evaluation benchmark."""
     report = GoldenComplianceEvaluator.evaluate_benchmark()
     return report
+
+
+class AsOfComplianceResponse(BaseModel):
+    as_of_date: datetime
+    tenant_id: str
+    active_regulations_count: int
+    active_policies_count: int
+    active_controls_count: int
+    active_obligations_count: int
+    details: Dict[str, Any] = {}
+
+
+@router.get("/as-of", response_model=AsOfComplianceResponse)
+async def query_compliance_as_of(
+    as_of_date: Optional[str] = None,
+    ctx: TenantContext = Depends(get_current_tenant_context),
+    db: AsyncSession = Depends(get_db_session),
+):
+    """
+    Historical Compliance Audit ("As-Of" Query):
+    Answers "What was the applicable obligation, policy, and control state at time T?"
+    """
+    target_dt = datetime.fromisoformat(as_of_date) if as_of_date else datetime.utcnow()
+
+    # Query policies effective at target_dt
+    pol_q = select(Policy).where(
+        Policy.tenant_id == ctx.tenant_id,
+        Policy.effective_from <= target_dt,
+    )
+    pol_res = await db.execute(pol_q)
+    policies = pol_res.scalars().all()
+
+    # Query regulations effective at target_dt
+    reg_q = select(Regulation).where(
+        Regulation.created_at <= target_dt,
+    )
+    reg_res = await db.execute(reg_q)
+    regulations = reg_res.scalars().all()
+
+    # Query active controls
+    from database.postgres.models import Control, RegulatoryObligation
+    ctrl_q = select(Control).where(
+        Control.tenant_id == ctx.tenant_id,
+        Control.effective_from <= target_dt,
+    )
+    ctrl_res = await db.execute(ctrl_q)
+    controls = ctrl_res.scalars().all()
+
+    # Query obligations
+    obl_q = select(RegulatoryObligation).where(
+        RegulatoryObligation.effective_from <= target_dt,
+    )
+    obl_res = await db.execute(obl_q)
+    obligations = obl_res.scalars().all()
+
+    return AsOfComplianceResponse(
+        as_of_date=target_dt,
+        tenant_id=ctx.tenant_id,
+        active_regulations_count=len(regulations),
+        active_policies_count=len(policies),
+        active_controls_count=len(controls),
+        active_obligations_count=len(obligations),
+        details={
+            "policies": [{"code": p.policy_code, "title": p.title, "version": p.current_version} for p in policies],
+            "regulations": [{"code": r.code, "title": r.title} for r in regulations],
+            "controls": [{"code": c.control_code, "name": c.name, "status": c.effectiveness_status} for c in controls],
+        },
+    )
+
 

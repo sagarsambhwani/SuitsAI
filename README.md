@@ -14,6 +14,8 @@ LLMs interpret and generate (Bedrock Claude 3.5 Sonnet / Multi-Model Router).
 Human approval controls production changes (Approval Gateway & Immutable Audit).
 ```
 
+> 📘 **Deep Architectural Evaluation & Tier-1 Hardening Roadmap**: See [CRITIQUE_AND_HARDENING_ROADMAP.md](file:///e:/Downloads/VoyagerAI/docs/CRITIQUE_AND_HARDENING_ROADMAP.md) for institutional gap analysis, dual-write consistency specifications, and NLI verification targets.
+
 ---
 
 ## 2. System Architecture
@@ -148,6 +150,7 @@ terraform apply -var-file="environments/prod.tfvars"
 
 ### Core Guides
 * [System Architecture Guide](docs/architecture.md): Two-plane architecture, LangGraph reasoning, and 8-Gate verification.
+* [Master Coding-Agent Implementation Prompt (v4)](docs/coding_agent_master_prompt.md): Autonomous agent implementation specification covering all 11 compliance dimensions.
 * [AWS Bedrock & Alternatives Deep-Dive (v3)](docs/aws_bedrock_and_alternatives_defense.md): Full-stack Bedrock subsystem, TCO comparison against Azure OpenAI, Vertex AI, Self-Hosted vLLM, and Direct SaaS.
 * [LangGraph Orchestration & Multi-Agent Defense (v2)](docs/langgraph_architecture_and_defense.md): Technical defense and architectural deep-dive into LangGraph state machine design.
 * [Engineering Interview & Systems Defense Guide](docs/interview_guide.md): Comprehensive interview guide from AI, Backend, and DevOps perspectives.

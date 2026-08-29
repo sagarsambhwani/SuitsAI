@@ -15,7 +15,37 @@ class ParsedSection(BaseModel):
     order_index: int = 0
 
 
+class ParsedProvision(BaseModel):
+    provision_id: str
+    section_number: str
+    paragraph_number: int = 0
+    heading: str
+    text: str
+    page_number: int = 1
+    hierarchy_path: str = ""
+
+
+class ParsedObligation(BaseModel):
+    obligation_code: str
+    provision_section: str
+    obligation_type: str = "MANDATE"  # MANDATE, PROHIBITION, CONDITION, EXCEPTION, THRESHOLD, DEADLINE, REPORTING, DISCLOSURE, RECORDKEEPING, GOVERNANCE
+    requirement_text: str
+    normalized_requirement: Optional[str] = None
+    mandatory_action: Optional[str] = None
+    subject: str = "Regulated Entity"
+    object: Optional[str] = None
+    conditions: List[str] = Field(default_factory=list)
+    exceptions: List[str] = Field(default_factory=list)
+    thresholds: List[str] = Field(default_factory=list)
+    deadlines: List[str] = Field(default_factory=list)
+    reporting_requirements: List[str] = Field(default_factory=list)
+    applies_to: List[str] = Field(default_factory=list)
+    risk_category: str = "Operational & Compliance Risk"
+    page_number: int = 1
+
+
 class ExtractedRequirement(BaseModel):
+    """Compatibility requirement entity for legacy workflows."""
     req_code: str
     section_number: str
     obligation_text: str
@@ -58,13 +88,15 @@ class ParsedDocument(BaseModel):
     publication_date: Optional[datetime] = None
     effective_date: Optional[datetime] = None
     sections: List[ParsedSection] = Field(default_factory=list)
+    provisions: List[ParsedProvision] = Field(default_factory=list)
+    obligations: List[ParsedObligation] = Field(default_factory=list)
     extracted_requirements: List[ExtractedRequirement] = Field(default_factory=list)
     chunks: List[HierarchicalChunk] = Field(default_factory=list)
     raw_text: str
 
 
 class DocumentParser:
-    """Intelligent layout-aware document parser and semantic/structural chunker."""
+    """Intelligent layout-aware document parser, provision/obligation extractor, and structural chunker."""
 
     @classmethod
     def parse_file_bytes(
@@ -116,6 +148,7 @@ class DocumentParser:
         section_pattern = re.compile(r"^(?:Section\s+|Article\s+|Clause\s+)?(\d+(?:\.\d+)*)[:\.\-\s]+(.*)$", re.IGNORECASE)
         
         sections: List[ParsedSection] = []
+        provisions: List[ParsedProvision] = []
         current_sec_num = "1.0"
         current_heading = "General Overview"
         current_content = []
@@ -123,7 +156,6 @@ class DocumentParser:
         current_page = 1
 
         for line_idx, line in enumerate(lines):
-            # Check for page markers like "[Page 2]" or "-- Page 2 --" or "[Slide 2]"
             page_match = re.search(r"\[(?:Page|Slide)\s*(\d+)\]", line, re.IGNORECASE)
             if page_match:
                 current_page = int(page_match.group(1))
@@ -131,14 +163,26 @@ class DocumentParser:
             match = section_pattern.match(line)
             if match and len(line) < 120 and ("." in match.group(1) or line.startswith(("Section", "Article", "Clause"))):
                 if current_content:
+                    sec_text = "\n".join(current_content)
                     sections.append(
                         ParsedSection(
                             section_number=current_sec_num,
                             heading=current_heading,
-                            content="\n".join(current_content),
+                            content=sec_text,
                             page_number=current_page,
                             paragraph_index=order,
                             order_index=order,
+                        )
+                    )
+                    provisions.append(
+                        ParsedProvision(
+                            provision_id=f"PROV-{default_code.replace('/', '-')}-{current_sec_num}",
+                            section_number=current_sec_num,
+                            paragraph_number=order,
+                            heading=current_heading,
+                            text=sec_text,
+                            page_number=current_page,
+                            hierarchy_path=f"Regulation {default_code} > Section {current_sec_num}",
                         )
                     )
                     order += 1
@@ -149,33 +193,58 @@ class DocumentParser:
                 current_content.append(line)
 
         if current_content:
+            sec_text = "\n".join(current_content)
             sections.append(
                 ParsedSection(
                     section_number=current_sec_num,
                     heading=current_heading,
-                    content="\n".join(current_content),
+                    content=sec_text,
                     page_number=current_page,
                     paragraph_index=order,
                     order_index=order,
                 )
             )
+            provisions.append(
+                ParsedProvision(
+                    provision_id=f"PROV-{default_code.replace('/', '-')}-{current_sec_num}",
+                    section_number=current_sec_num,
+                    paragraph_number=order,
+                    heading=current_heading,
+                    text=sec_text,
+                    page_number=current_page,
+                    hierarchy_path=f"Regulation {default_code} > Section {current_sec_num}",
+                )
+            )
 
-        # 3. Extract Structured Requirements with Conditions & Exceptions
+        # 3. Extract Structured Obligations with Deontic Logic & Compatibility Requirements
         requirements: List[ExtractedRequirement] = []
+        obligations: List[ParsedObligation] = []
         req_counter = 1
 
         for sec in sections:
             sentences = re.split(r"(?<=[.!?])\s+", sec.content)
             for sentence in sentences:
                 s_lower = sentence.lower()
-                if any(kw in s_lower for kw in ["shall", "must", "mandatory", "required to", "is prohibited", "ensure that", "may not"]):
-                    # Determine obligation type
+                if any(kw in s_lower for kw in ["shall", "must", "mandatory", "required to", "is prohibited", "ensure that", "may not", "should", "record", "report", "submit"]):
+                    # Deontic Logic Categorization
                     if "prohibited" in s_lower or "shall not" in s_lower or "must not" in s_lower or "may not" in s_lower:
-                        ob_type = "PROHIBITED"
+                        ob_type = "PROHIBITION"
+                        legacy_type = "PROHIBITED"
+                    elif "report" in s_lower or "submit" in s_lower or "notify" in s_lower:
+                        ob_type = "REPORTING"
+                        legacy_type = "MANDATORY"
+                    elif "record" in s_lower or "retain" in s_lower or "maintain logs" in s_lower:
+                        ob_type = "RECORDKEEPING"
+                        legacy_type = "MANDATORY"
                     elif "if " in s_lower or "in the event of" in s_lower or "where applicable" in s_lower:
-                        ob_type = "CONDITIONAL"
+                        ob_type = "CONDITION"
+                        legacy_type = "CONDITIONAL"
+                    elif "within" in s_lower or "hours" in s_lower or "days" in s_lower or "deadline" in s_lower:
+                        ob_type = "DEADLINE"
+                        legacy_type = "MANDATORY"
                     else:
-                        ob_type = "MANDATORY"
+                        ob_type = "MANDATE"
+                        legacy_type = "MANDATORY"
 
                     # Extract Conditions
                     conditions = []
@@ -188,9 +257,15 @@ class DocumentParser:
 
                     # Extract Exceptions
                     exceptions = []
-                    if "except" in s_lower or "unless" in s_lower or "exempted from" in s_lower:
-                        exc_part = re.findall(r"(?:except|unless|exempted from)\s+([^,.;]+)", s_lower)
+                    if "except" in s_lower or "unless" in s_lower or "exempted from" in s_lower or "exemption" in s_lower:
+                        exc_part = re.findall(r"(?:except|unless|exempted from|exemption for)\s+([^,.;]+)", s_lower)
                         exceptions.extend([e.strip() for e in exc_part])
+
+                    # Extract Thresholds
+                    thresholds = re.findall(r"(?:exceeding|above|greater than|more than|at least|minimum of)\s+([A-Za-z0-9\s,\$₹]+)", s_lower)
+
+                    # Extract Deadlines
+                    deadlines = re.findall(r"(?:within|no later than|by)\s+([A-Za-z0-9\s]+(?:hours|days|months|weeks|years))", s_lower)
 
                     # Determine risk category
                     risk = "Operational Risk"
@@ -202,14 +277,37 @@ class DocumentParser:
                         risk = "Prudential / Financial Risk"
 
                     req_code = f"REQ-{default_code.replace('/', '-')}-{sec.section_number}-{req_counter:02d}"
+                    obl_code = f"OBL-{default_code.replace('/', '-')}-{sec.section_number}-{req_counter:02d}"
+
                     requirements.append(
                         ExtractedRequirement(
                             req_code=req_code,
                             section_number=sec.section_number,
                             obligation_text=sentence.strip(),
-                            obligation_type=ob_type,
+                            obligation_type=legacy_type,
                             conditions=conditions,
                             exceptions=exceptions,
+                            applies_to=["Commercial Banks", "Digital Lending Entities", "Payment Processors"],
+                            risk_category=risk,
+                            page_number=sec.page_number,
+                        )
+                    )
+
+                    obligations.append(
+                        ParsedObligation(
+                            obligation_code=obl_code,
+                            provision_section=sec.section_number,
+                            obligation_type=ob_type,
+                            requirement_text=sentence.strip(),
+                            normalized_requirement=sentence.strip(),
+                            mandatory_action=sentence.strip(),
+                            subject="Regulated Entity",
+                            object=None,
+                            conditions=conditions,
+                            exceptions=exceptions,
+                            thresholds=[t.strip() for t in thresholds],
+                            deadlines=[d.strip() for d in deadlines],
+                            reporting_requirements=[],
                             applies_to=["Commercial Banks", "Digital Lending Entities", "Payment Processors"],
                             risk_category=risk,
                             page_number=sec.page_number,
@@ -236,6 +334,8 @@ class DocumentParser:
             publication_date=publication_date or datetime.utcnow(),
             effective_date=effective_date or datetime.utcnow(),
             sections=sections,
+            provisions=provisions,
+            obligations=obligations,
             extracted_requirements=requirements,
             chunks=chunks,
             raw_text=text,
@@ -250,14 +350,12 @@ class DocumentParser:
         regulator: str,
         jurisdiction: str,
         effective_date: datetime,
-        target_words_per_chunk: int = 350,  # ~450-600 tokens
-        overlap_words: int = 40,            # ~10-12% overlap
+        target_words_per_chunk: int = 350,
+        overlap_words: int = 40,
     ) -> List[HierarchicalChunk]:
-        """Creates semantic and structural chunks preserving clause and chapter hierarchy."""
         chunks: List[HierarchicalChunk] = []
         chunk_idx = 1
 
-        # Map requirements by section
         reqs_by_sec: Dict[str, List[ExtractedRequirement]] = {}
         for req in requirements:
             reqs_by_sec.setdefault(req.section_number, []).append(req)
@@ -272,7 +370,6 @@ class DocumentParser:
             risk = sec_reqs[0].risk_category if sec_reqs else "Compliance & Governance"
 
             if len(words) <= target_words_per_chunk:
-                # Keep whole section together
                 chunk_text = f"[{doc_code}] Section {sec.section_number} - {sec.heading} (Page {sec.page_number}):\n{sec.content}"
                 chunks.append(
                     HierarchicalChunk(
@@ -298,7 +395,6 @@ class DocumentParser:
                 )
                 chunk_idx += 1
             else:
-                # Sliding window with overlap
                 start = 0
                 part = 1
                 while start < len(words):

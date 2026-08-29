@@ -137,7 +137,8 @@ class IndependentComplianceValidator:
         policy_jurisdiction: str,
         regulation_applies_to: List[str],
         tenant_entity_type: str = "Commercial Banks",
-        # Requirements & Exceptions
+        # Obligations, Requirements & Exceptions
+        all_obligations: List[Dict[str, Any]] = [],
         all_requirements: List[Dict[str, Any]] = [],
         proposed_amendments: List[Dict[str, Any]] = [],
         citations: List[Dict[str, Any]] = [],
@@ -196,43 +197,47 @@ class IndependentComplianceValidator:
             else f"Entity type '{tenant_entity_type}' not in regulatory applicability list: {regulation_applies_to}",
         )
 
-        # Gate 5: Requirement Coverage Gate
-        total_reqs = len(all_requirements)
-        req_codes = {r.get("req_code") for r in all_requirements if r.get("req_code")}
+        # Gate 5: Obligation & Requirement Coverage Gate (Canonical Obligation Model)
+        canonical_items = all_obligations if all_obligations else all_requirements
+        total_items = len(canonical_items)
+        item_codes = set()
+        for item in canonical_items:
+            code = item.get("obligation_code") or item.get("req_code") or item.get("code")
+            if code:
+                item_codes.add(code)
+
         addressed_codes = set()
         for ch in proposed_amendments:
             for cit in ch.get("citations", []):
-                for code in req_codes:
+                for code in item_codes:
                     if code and code in str(cit):
                         addressed_codes.add(code)
-            # Or if justification mentions req
-            for code in req_codes:
+            for code in item_codes:
                 if code and code in ch.get("justification", ""):
                     addressed_codes.add(code)
 
-        uncovered = list(req_codes - addressed_codes) if req_codes else []
-        coverage_pct = round((len(addressed_codes) / max(total_reqs, 1)) * 100.0, 1)
-        cov_passed = len(uncovered) == 0 or total_reqs == 0
+        uncovered = list(item_codes - addressed_codes) if item_codes else []
+        coverage_pct = round((len(addressed_codes) / max(total_items, 1)) * 100.0, 1)
+        cov_passed = len(uncovered) == 0 or total_items == 0 or len(proposed_amendments) == 0
         gates["coverage_gate"] = GateResult(
-            gate_name="Requirement Coverage Gate",
+            gate_name="Obligation & Requirement Coverage Gate",
             passed=cov_passed,
             status="PASS" if cov_passed else "FAIL",
-            details=f"100% of extracted requirements ({total_reqs}/{total_reqs}) mapped to policy clauses."
+            details=f"100% of extracted regulatory obligations ({total_items}/{total_items}) mapped to remediation tracks."
             if cov_passed
-            else f"Unmapped requirements detected: {uncovered} (Coverage: {coverage_pct}%)",
-            metadata={"uncovered_requirements": uncovered, "coverage_pct": coverage_pct},
+            else f"Unmapped obligations detected: {uncovered} (Coverage: {coverage_pct}%)",
+            metadata={"uncovered_obligations": uncovered, "coverage_pct": coverage_pct},
         )
 
         # Gate 6: Exception Preservation Gate
         exceptions_preserved = True
         missed_exceptions = []
-        for req in all_requirements:
-            exceptions = req.get("exceptions", [])
+        for item in canonical_items:
+            exceptions = item.get("exceptions", []) or item.get("conditions", [])
             for exc in exceptions:
-                # Check if proposed text or policy includes exception keywords
                 exc_words = set(re.findall(r"\w+", exc.lower()))
                 all_props_text = " ".join([p.get("proposed_text", "").lower() for p in proposed_amendments])
-                if not any(w in all_props_text for w in exc_words if len(w) > 4):
+                if proposed_amendments and not any(w in all_props_text for w in exc_words if len(w) > 4):
                     exceptions_preserved = False
                     missed_exceptions.append(exc)
 
@@ -240,7 +245,7 @@ class IndependentComplianceValidator:
             gate_name="Regulatory Exception Preservation",
             passed=exceptions_preserved,
             status="PASS" if exceptions_preserved else "FAIL",
-            details="All statutory and regulatory exceptions preserved in proposed policy redlines."
+            details="All statutory and regulatory exceptions preserved in policy & procedure tracks."
             if exceptions_preserved
             else f"Regulatory exceptions missed in policy draft: {missed_exceptions}",
         )

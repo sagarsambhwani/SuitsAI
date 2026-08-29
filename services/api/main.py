@@ -17,6 +17,17 @@ from services.api.routers import (
     workflows,
     approvals,
     audit,
+    obligations,
+    applicability,
+    impact_assessments,
+    controls,
+    gaps,
+    risks,
+    remediations,
+    exceptions,
+    control_tests,
+    evidence,
+    internal_documents,
 )
 
 logger = logging.getLogger(__name__)
@@ -55,7 +66,18 @@ app.include_router(auth.router, prefix="/api/v1")
 app.include_router(tenants.router, prefix="/api/v1")
 app.include_router(documents.router, prefix="/api/v1")
 app.include_router(regulations.router, prefix="/api/v1")
+app.include_router(obligations.router, prefix="/api/v1")
+app.include_router(applicability.router, prefix="/api/v1")
+app.include_router(internal_documents.router, prefix="/api/v1")
 app.include_router(policies.router, prefix="/api/v1")
+app.include_router(controls.router, prefix="/api/v1")
+app.include_router(impact_assessments.router, prefix="/api/v1")
+app.include_router(gaps.router, prefix="/api/v1")
+app.include_router(risks.router, prefix="/api/v1")
+app.include_router(remediations.router, prefix="/api/v1")
+app.include_router(exceptions.router, prefix="/api/v1")
+app.include_router(control_tests.router, prefix="/api/v1")
+app.include_router(evidence.router, prefix="/api/v1")
 app.include_router(compliance.router, prefix="/api/v1")
 app.include_router(workflows.router, prefix="/api/v1")
 app.include_router(approvals.router, prefix="/api/v1")

@@ -4,14 +4,14 @@ from pydantic import BaseModel, Field
 
 class GraphNode(BaseModel):
     id: str
-    label: str
+    label: str  # RegulatorySource, RegulatoryProvision, RegulatoryObligation, Control, BusinessProcess, System, Vendor, InternalDocument, ComplianceGap, RemediationAction, ControlTest, ComplianceEvidence
     properties: Dict[str, Any] = Field(default_factory=dict)
 
 
 class GraphRelationship(BaseModel):
     source_id: str
     target_id: str
-    rel_type: str  # PUBLISHED, HAS_SECTION, CONTAINS, REQUIRES, AFFECTS, IMPLEMENTED_BY, OWNED_BY
+    rel_type: str  # CONTAINS, HAS_APPLICABILITY, APPLIES_TO, REQUIRES, IMPACTS, SUPPORTED_BY, IMPLEMENTS, OPERATES_IN, RELATES_TO, AFFECTS, REMEDIATES, PRODUCES, TESTS, GENERATES, ASSESSES, SUPERSEDES
     
     # First-Class Provenance Metadata on every Edge
     source_evidence_id: Optional[str] = None  # DocumentVersion or Section ID
@@ -36,6 +36,15 @@ class RegulatoryImpactPath(BaseModel):
     control_id: Optional[str] = None
     control_code: Optional[str] = None
     business_unit: Optional[str] = None
+    
+    # Extended Multi-Hop Impact Metadata
+    provision_id: Optional[str] = None
+    obligation_id: Optional[str] = None
+    obligation_type: Optional[str] = "MANDATE"
+    impacted_processes: List[str] = Field(default_factory=list)
+    impacted_systems: List[str] = Field(default_factory=list)
+    impacted_documents: List[str] = Field(default_factory=list)
+    applicability_status: str = "APPLICABLE"
     
     # Traceability & Provenance
     source_evidence_id: Optional[str] = None
