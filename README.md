@@ -14,7 +14,8 @@ LLMs interpret and generate (Bedrock Claude 3.5 Sonnet / Multi-Model Router).
 Human approval controls production changes (Approval Gateway & Immutable Audit).
 ```
 
-> 📘 **Deep Architectural Evaluation & Tier-1 Hardening Roadmap**: See [CRITIQUE_AND_HARDENING_ROADMAP.md](file:///e:/Downloads/VoyagerAI/docs/CRITIQUE_AND_HARDENING_ROADMAP.md) for institutional gap analysis, dual-write consistency specifications, and NLI verification targets.
+> 📘 **Deep Architectural Evaluation & Tier-1 Hardening Roadmap**: See [CRITIQUE_AND_HARDENING_ROADMAP.md](file:///e:/Downloads/VoyagerAI/docs/CRITIQUE_AND_HARDENING_ROADMAP.md) for institutional gap analysis.
+> 🛡️ **Formal Defense & Implementation Risk Analysis**: See [DEFENSE_AND_IMPLEMENTATION_RISKS.md](file:///e:/Downloads/VoyagerAI/docs/DEFENSE_AND_IMPLEMENTATION_RISKS.md) for mathematical justifications, Z3 SMT proofs, NLI latency mitigations, and bi-temporal graph strategies.
 
 ---
 
